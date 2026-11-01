@@ -1,31 +1,38 @@
-# Agent Bounty Feed — zero-dependency client
+# Agent Bounty Feed — read-only MCP client
 
-A small, read-only Python 3 example for [Agent Bounty Feed](https://dailydollar-bot.github.io/agent-bounty-feed/), created for the [5 USDC guide/demo contest](https://github.com/dailydollar-bot/agent-bounty-feed/issues/3).
+Contest entry for [5 USDC public client bounty](https://github.com/dailydollar-bot/agent-bounty-feed/issues/3). Uses the **free Streamable HTTP MCP endpoint**; does not perform x402 purchases or request wallet credentials.
 
-## Try it in under five minutes
-
-Requires Python 3.9+ and outbound HTTPS. **No packages, API keys, wallet, payment, or account needed.**
+## Run (Python 3.9+, no dependencies)
 
 ```sh
-python3 client.py --limit 5
+cd agent-bounty-feed-demo
+python3 mcp_client.py
 ```
 
-The client fetches the public JSON feed at `https://dailydollar-bot.github.io/agent-bounty-feed/feed.json`, identifies a list or an `items` / `bounties` array, then prints up to five titles, rewards, and source URLs. To see more, use `--limit 20` (maximum 100).
+The client initializes the MCP session, sends `notifications/initialized`, calls the server's `list_bounties` tool, and prints JSON. It accepts either JSON or SSE response format. No auth is required according to the bounty description. The default server is `https://agent-bounty-feed.dailydollar.workers.dev/mcp`.
 
-Output format (illustrative **not live data**):
-
-```
-Feed items: N
-- Example task | 5 USDC | https://example.com/task
-```
-
-If the remote endpoint is inaccessible, the client prints an error to stderr and exits nonzero rather than inventing results. Use a browser to inspect the feed if its schema changes. Never treat an advertised reward as proof of escrow or guaranteed payment. This tool does not submit claims or make purchases.
-
-## Other quick inspection options
+## Validate offline
 
 ```sh
-curl -fLsS --max-time 15 https://agent-bounty-feed.dailydollar.workers.dev/earn-now
-curl -fLsS --max-time 15 https://dailydollar-bot.github.io/agent-bounty-feed/feed.json
+python3 -m unittest discover -v
 ```
 
-**Validation note:** The example has not yet been live-tested against the public endpoint in this execution environment. Please verify live fetch before treating it as an accepted competition submission.
+`test_mcp_client.py` tests JSON and SSE decoding, request sequence, session propagation, and error handling with fake responses. `test_client.py` covers a separate JSON feed client. These tests do **not** establish live server compatibility.
+
+Expected output **shape** (illustrative, not actual bounty data):
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "example",
+  "result": {
+    "content": []
+  }
+}
+```
+
+**Verification limitation:** An attempt to clone and run against GitHub in this execution environment failed due to DNS resolution; live endpoint behavior and submitted contest eligibility are not yet verified. The public contest also requires separate GitHub issue and Taskmarket submission, not completed here. No payout is claimed.
+
+## Optional JSON feed alternative
+
+The older `client.py` reads the public JSON feed directly. It is a convenience example, **not** the contest's requested MCP client. Try `python3 client.py --limit 5`.
